@@ -1,68 +1,57 @@
 require('dotenv').config();
-
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const morgan = require('morgan');
 const mongoose = require('mongoose');
 
 const app = express();
 
-// Middleware
-app.use(helmet());
+// middleware
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({
   origin: [
+    process.env.FRONTEND_URL,
     'https://www.mbpss.co.uk',
     'https://mbpss.co.uk',
     'http://localhost:3000'
-  ]
+  ],
+  credentials: true
 }));
 
 app.use(express.json());
-app.use(morgan('dev'));
 
-// MongoDB (safe for Vercel)
-let cached = global.mongoose;
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
+// MongoDB connect (IMPORTANT for serverless)
+let isConnected = false;
 
 async function connectDB() {
-  if (cached.conn) return cached.conn;
+  if (isConnected) return;
 
-  cached.promise = mongoose.connect(process.env.MONGODB_URI);
-  cached.conn = await cached.promise;
-
-  return cached.conn;
+  await mongoose.connect(process.env.MONGODB_URI);
+  isConnected = true;
+  console.log("MongoDB connected");
 }
 
-// Connect DB per request safely
-app.use(async (req, res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (err) {
-    console.log("DB Error:", err.message);
-    res.status(500).json({ error: "DB connection failed" });
-  }
+// ROUTES wrapper (VERY IMPORTANT for Vercel)
+app.get('/api/health', async (req, res) => {
+  await connectDB();
+  res.json({
+    status: "OK",
+    time: new Date().toISOString()
+  });
 });
 
-// Routes
+// routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/quotes', require('./routes/quote'));
 app.use('/api/contacts', require('./routes/contact'));
 app.use('/api/reviews', require('./routes/review'));
 app.use('/api/services', require('./routes/service'));
+app.use('/api/dashboard', require('./routes/dashboard'));
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: "OK",
-    message: "Backend running fine 🚀"
-  });
+// default
+app.get('/', (req, res) => {
+  res.send("MBPSS Backend Running");
 });
 
-// ❌ NO app.listen() HERE
-
+// ❌ NO app.listen() in Vercel
 module.exports = app;
