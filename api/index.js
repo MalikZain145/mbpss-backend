@@ -1,5 +1,4 @@
-const app = require('../index');
+const app = require("../src/index");
 
-module.exports = (req, res) => {
-  return app(req, res);
-};
+// Vercel expects a function export
+module.exports = app;
