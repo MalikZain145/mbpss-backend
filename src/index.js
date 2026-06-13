@@ -87,23 +87,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// TEMPORARY SEED ROUTE - REMOVE AFTER USE
-app.get('/api/seed-admin', async (req, res) => {
-  try {
-    await connectDB();
-    const Admin = require('./models/Admin');
-    const existing = await Admin.findOne({ email: process.env.ADMIN_EMAIL });
-    if (existing) return res.json({ message: 'Admin already exists' });
-    await Admin.create({
-      name: 'MBPSS Admin',
-      email: process.env.ADMIN_EMAIL,
-      password: process.env.ADMIN_PASSWORD
-    });
-    res.json({ message: 'Admin created successfully' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/quotes', rateLimiter, require('./routes/quote'));
