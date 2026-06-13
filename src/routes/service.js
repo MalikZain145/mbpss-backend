@@ -1,0 +1,12 @@
+const router = require('express').Router();
+const auth = require('../middleware/auth');
+const { validateService } = require('../middleware/validators');
+const c = require('../controllers/serviceController');
+router.get('/public', c.getPublicServices);
+router.get('/public/:slug', c.getServiceBySlug);
+router.get('/', auth, c.getAllServices);
+router.post('/', auth, validateService, c.createService);
+router.put('/:id', auth, c.updateService);
+router.patch('/:id/toggle', auth, c.toggleService);
+router.delete('/:id', auth, c.deleteService);
+module.exports = router;

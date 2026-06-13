@@ -1,0 +1,11 @@
+const router = require('express').Router();
+const auth = require('../middleware/auth');
+const { validateQuote } = require('../middleware/validators');
+const c = require('../controllers/quoteController');
+router.post('/', validateQuote, c.submitQuote);
+router.get('/', auth, c.getAllQuotes);
+router.get('/stats', auth, c.getQuoteStats);
+router.get('/:id', auth, c.getQuote);
+router.put('/:id', auth, c.updateQuote);
+router.delete('/:id', auth, c.deleteQuote);
+module.exports = router;
