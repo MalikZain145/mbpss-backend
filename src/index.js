@@ -53,5 +53,5 @@ app.get('/', (req, res) => {
   res.send("MBPSS Backend Running");
 });
 
-// ❌ NO app.listen() in Vercel
+
 module.exports = app;
